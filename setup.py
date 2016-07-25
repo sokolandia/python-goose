@@ -66,6 +66,6 @@ setup(name='goose-extractor',
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
-    install_requires=['lxml', 'cssselect', 'jieba', 'beautifulsoup', 'nltk'],
+    install_requires=['cssselect', 'jieba', 'beautifulsoup', 'nltk'],
     test_suite="tests"
 )
