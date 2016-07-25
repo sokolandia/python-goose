@@ -1,4 +1,3 @@
-PIL==1.1.7
 lxml
 cssselect
 jieba
