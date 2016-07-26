@@ -31,8 +31,6 @@ from goose.image import LocallyStoredImage
 
 from google.appengine.api import urlfetch, memcache
 
-from util import make_hash
-
 
 class ImageUtils(object):
 
@@ -57,7 +55,7 @@ class ImageUtils(object):
         that has the info you should need on the image
         """
         # check for a cache hit already on disk
-        src_hash = make_hash(smart_str(src))
+        src_hash = hashlib.md5(smart_str(src)).hexdigest()
         image = memcache.get(src_hash)
         if image:
             return image

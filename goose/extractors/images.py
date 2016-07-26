@@ -402,11 +402,6 @@ class ImageExtractor(BaseExtractor):
           so we can find a link to the image
           if they use relative urls like ../myimage.jpg
         """
-        o = urlparse(src)
-        # we have a full url
-        if o.hostname:
-            return o.geturl()
-        # we have a relative url
         return urljoin(self.target_url, src)
 
     def load_customesite_mapping(self):
