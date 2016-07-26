@@ -23,19 +23,24 @@ limitations under the License.
 import hashlib
 import os
 import urllib2
+import io
 from PIL import Image
 from goose.utils.encoding import smart_str
 from goose.image import ImageDetails
 from goose.image import LocallyStoredImage
 
+from google.appengine.api import urlfetch, memcache
+
+from util import make_hash
+
 
 class ImageUtils(object):
 
     @classmethod
-    def get_image_dimensions(self, identify_program, path):
+    def get_image_dimensions(self, entity):
         image_details = ImageDetails()
         try:
-            image = Image.open(path)
+            image = Image.open(io.BytesIO(entity))
             image_details.set_mime_type(image.format)
             width, height = image.size
             image_details.set_width(width)
@@ -52,14 +57,15 @@ class ImageUtils(object):
         that has the info you should need on the image
         """
         # check for a cache hit already on disk
-        image = self.read_localfile(link_hash, src, config)
+        src_hash = make_hash(smart_str(src))
+        image = memcache.get(src_hash)
         if image:
             return image
 
         # no cache found download the image
         data = self.fetch(http_client, src)
         if data:
-            image = self.write_localfile(data, link_hash, src, config)
+            image = self.write_localfile(data, link_hash, src_hash, src, config)
             if image:
                 return image
 
@@ -77,36 +83,19 @@ class ImageUtils(object):
         return mimes.get(mime_type, 'NA')
 
     @classmethod
-    def read_localfile(self, link_hash, src, config):
-        local_image_name = self.get_localfile_name(link_hash, src, config)
-        if os.path.isfile(local_image_name):
-            identify = config.imagemagick_identify_path
-            image_details = self.get_image_dimensions(identify, local_image_name)
-            file_extension = self.get_mime_type(image_details)
-            bytes = os.path.getsize(local_image_name)
-            return LocallyStoredImage(
-                src=src,
-                local_filename=local_image_name,
-                link_hash=link_hash,
-                bytes=bytes,
-                file_extension=file_extension,
-                height=image_details.get_height(),
-                width=image_details.get_width()
-            )
-        return None
-
-    @classmethod
-    def write_localfile(self, entity, link_hash, src, config):
-        local_path = self.get_localfile_name(link_hash, src, config)
-        f = open(local_path, 'wb')
-        f.write(entity)
-        f.close()
-        return self.read_localfile(link_hash, src, config)
-
-    @classmethod
-    def get_localfile_name(self, link_hash, src, config):
-        image_hash = hashlib.md5(smart_str(src)).hexdigest()
-        return os.path.join(config.local_storage_path, '%s_%s' % (link_hash, image_hash))
+    def write_localfile(self, entity, link_hash, src_hash, src, config):
+        image_details = self.get_image_dimensions(entity)
+        local_image = LocallyStoredImage(
+            src=src,
+            local_filename=src_hash,
+            link_hash=link_hash,
+            bytes=len(entity),
+            file_extension=self.get_mime_type(image_details),
+            height=image_details.get_height(),
+            width=image_details.get_width()
+        )
+        memcache.set(src_hash, local_image)
+        return local_image
 
     @classmethod
     def clean_src_string(self, src):
@@ -115,9 +104,10 @@ class ImageUtils(object):
     @classmethod
     def fetch(self, http_client, src):
         try:
-            req = urllib2.Request(src)
-            f = urllib2.urlopen(req)
-            data = f.read()
-            return data
-        except Exception:
+            req = urlfetch.fetch(src)
+            if req.status_code == 200:
+                return req.content
+            else:
+                return None
+        except urlfetch.Error:
             return None
