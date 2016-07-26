@@ -21,15 +21,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import hashlib
-import os
-import urllib2
 import io
+import functools
 from PIL import Image
 from goose.utils.encoding import smart_str
 from goose.image import ImageDetails
 from goose.image import LocallyStoredImage
 
 from google.appengine.api import urlfetch, memcache
+
+
+def get_image_hash(src):
+    return hashlib.md5(smart_str(src)).hexdigest()
 
 
 class ImageUtils(object):
@@ -55,7 +58,7 @@ class ImageUtils(object):
         that has the info you should need on the image
         """
         # check for a cache hit already on disk
-        src_hash = hashlib.md5(smart_str(src)).hexdigest()
+        src_hash = get_image_hash(src)
         image = memcache.get(src_hash)
         if image:
             return image
@@ -65,9 +68,44 @@ class ImageUtils(object):
         if data:
             image = self.write_localfile(data, link_hash, src_hash, src, config)
             if image:
+                memcache.set(key=image.local_filename, value=image, time=86400)
                 return image
 
         return None
+
+    @classmethod
+    def store_images(self, link_hash, src_list, config):
+        src_hashes = map(get_image_hash, src_list)
+        images = memcache.get_multi(src_hashes)
+        result = []
+        rpcs = []
+        cache = {}
+
+        def handle_result(rpc, index):
+            try:
+                req = rpc.get_result()
+                if req.status_code == 200:
+                    image = self.write_localfile(data, link_hash, src_hashes[index], src_list[index], config)
+                    result.append(image)
+                    cache[image.local_filename] = image
+            except urlfetch.Error:
+                pass
+
+        for i, src_hash in enumerate(src_hashes):
+            image = images.get(src_hash)
+            if not image:
+                rpc = urlfetch.create_rpc()
+                rpc.callback = functools.partial(handle_result, rpc, i)
+                urlfetch.make_fetch_call(rpc, src_list[i])
+                rpcs.append(rpc)
+            else:
+                result.append(image)
+        for rpc in rpcs:
+            rpc.wait()
+        if cache:
+            memcache.add_multi(cache)
+        return result
+
 
     @classmethod
     def get_mime_type(self, image_details):
@@ -83,7 +121,7 @@ class ImageUtils(object):
     @classmethod
     def write_localfile(self, entity, link_hash, src_hash, src, config):
         image_details = self.get_image_dimensions(entity)
-        local_image = LocallyStoredImage(
+        return LocallyStoredImage(
             src=src,
             local_filename=src_hash,
             link_hash=link_hash,
@@ -92,8 +130,6 @@ class ImageUtils(object):
             height=image_details.get_height(),
             width=image_details.get_width()
         )
-        memcache.set(src_hash, local_image)
-        return local_image
 
     @classmethod
     def clean_src_string(self, src):

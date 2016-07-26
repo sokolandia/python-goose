@@ -163,17 +163,18 @@ class ImageExtractor(BaseExtractor):
           in area from the first image
         """
         image_results = {}
+        images_src = []
         initial_area = float(0.0)
         total_score = float(0.0)
         cnt = float(1.0)
         MIN_WIDTH = 50
         for image in images[:30]:
             src = self.parser.getAttribute(image, attr='src')
-            src = self.build_image_path(src)
-            local_image = self.get_local_image(src)
+            images_src.append(self.build_image_path(src))
+        local_images = self.get_local_images(images_src)
+        for local_image in local_images:
             width = local_image.width
             height = local_image.height
-            src = local_image.src
             file_extension = local_image.file_extension
 
             if file_extension != '.gif' or file_extension != 'NA':
@@ -336,6 +337,13 @@ class ImageExtractor(BaseExtractor):
         local_image = ImageUtils.store_image(None,
                                     self.link_hash, src, self.config)
         return local_image
+
+    def get_local_images(self, src_list):
+        """\
+        returns the bytes of the image file on disk
+        """
+        local_images = ImageUtils.store_images(self.link_hash, src_list, self.config)
+        return local_images
 
     def get_clean_domain(self):
         if self.article.domain:
