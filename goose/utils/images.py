@@ -77,7 +77,7 @@ class ImageUtils(object):
     def store_images(self, link_hash, src_list, config):
         src_hashes = map(get_image_hash, src_list)
         images = memcache.get_multi(src_hashes)
-        result = []
+        result = [None] * len(src_list)
         rpcs = []
         cache = {}
 
@@ -86,8 +86,7 @@ class ImageUtils(object):
                 req = rpc.get_result()
                 if req.status_code == 200:
                     image = self.write_localfile(data, link_hash, src_hashes[index], src_list[index], config)
-                    result.append(image)
-                    cache[image.local_filename] = image
+                    result[index] = cache[image.local_filename] = image
             except urlfetch.Error:
                 pass
 
@@ -99,13 +98,12 @@ class ImageUtils(object):
                 urlfetch.make_fetch_call(rpc, src_list[i])
                 rpcs.append(rpc)
             else:
-                result.append(image)
+                result[i] = image
         for rpc in rpcs:
             rpc.wait()
         if cache:
             memcache.add_multi(cache)
-        return result
-
+        return filter(lambda x: x, result)
 
     @classmethod
     def get_mime_type(self, image_details):

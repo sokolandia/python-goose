@@ -168,6 +168,7 @@ class ImageExtractor(BaseExtractor):
         total_score = float(0.0)
         cnt = float(1.0)
         MIN_WIDTH = 50
+        MAX_BYTES_SIZE = 15728640
         for image in images[:30]:
             src = self.parser.getAttribute(image, attr='src')
             images_src.append(self.build_image_path(src))
@@ -176,8 +177,11 @@ class ImageExtractor(BaseExtractor):
             width = local_image.width
             height = local_image.height
             file_extension = local_image.file_extension
-
-            if file_extension != '.gif' or file_extension != 'NA':
+            local_image_bytes = local_image.bytes
+            image_check = file_extension != '.gif' and file_extension != 'NA' and \
+                          (local_image_bytes == 0 or local_image_bytes > self.images_min_bytes) and \
+                          local_image_bytes < MAX_BYTES_SIZE
+            if image_check:
                 if (depth_level >= 1 and local_image.width > 300) or depth_level < 1:
                     if not self.is_banner_dimensions(width, height):
                         if width > MIN_WIDTH:
@@ -273,9 +277,7 @@ class ImageExtractor(BaseExtractor):
         images = self.get_node_images(node)
         if images:
             filtered_images = self.filter_bad_names(images)
-        if filtered_images:
-            good_images = self.get_images_bytesize_match(filtered_images)
-        return good_images
+        return filtered_images
 
     def get_images_bytesize_match(self, images):
         """\
