@@ -85,7 +85,7 @@ class ImageUtils(object):
             try:
                 req = rpc.get_result()
                 if req.status_code == 200:
-                    image = self.write_localfile(data, link_hash, src_hashes[index], src_list[index], config)
+                    image = self.write_localfile(req.content, link_hash, src_hashes[index], src_list[index], config)
                     result[index] = cache[image.local_filename] = image
             except urlfetch.Error:
                 pass
