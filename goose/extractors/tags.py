@@ -24,8 +24,7 @@ limitations under the License.
 from goose.extractors import BaseExtractor
 
 A_REL_TAG_SELECTOR = "a[rel=tag]"
-A_HREF_TAG_SELECTOR = "a[href*='/tag/'], a[href*='/tags/'], a[href*='/topic/'], a[href*='?keyword=']"
-
+A_HREF_TAG_SELECTOR = "meta[name*='/keywords/'], meta[name*='/news_keywords/'], a[href*='/tag/'], a[href*='/tags/'], a[href*='/topic/'], a[href*='?keyword=']"
 
 class TagsExtractor(BaseExtractor):
 
