@@ -237,7 +237,7 @@ class DocumentCleaner(object):
         bad_divs = 0
         else_divs = 0
         divs = self.parser.getElementsByTag(doc, tag=dom_type)
-        tags = ['a', 'blockquote', 'dl', 'div', 'img', 'ol', 'p', 'pre', 'table', 'ul']
+        tags = ['blockquote', 'dl', 'div', 'img', 'ol', 'p', 'pre', 'table', 'ul']
 
         for div in divs:
             items = self.parser.getElementsByTags(div, tags)

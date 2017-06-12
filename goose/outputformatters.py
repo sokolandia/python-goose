@@ -85,6 +85,14 @@ class OutputFormatter(object):
         cleans up and converts any nodes that
         should be considered text into text
         """
+        links = self.parser.getElementsByTag(self.get_top_node(), "a", "href")
+        for link in links:
+            self.parser.stripTags(link, '*')
+            link_text = self.parser.getText(link)
+            href = link.get("href")
+            if link_text and href:
+                link.text = "<a href='{href}' tn-article-link>{link_text}</a>".format(href=href,
+                                                                                      link_text=link_text)
         self.parser.stripTags(self.get_top_node(), 'a')
 
     def remove_negativescores_nodes(self):
