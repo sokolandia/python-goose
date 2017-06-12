@@ -91,7 +91,7 @@ class OutputFormatter(object):
             link_text = self.parser.getText(link)
             href = link.get("href")
             if link_text and href:
-                link.text = "<a href='{href}' tn-article-link>{link_text}</a>".format(href=href,
+                link.text = " <a data-href='{href}' tn-article-link>{link_text}</a>".format(href=href,
                                                                                       link_text=link_text)
         self.parser.stripTags(self.get_top_node(), 'a')
 
