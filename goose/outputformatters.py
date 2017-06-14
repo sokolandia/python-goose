@@ -93,8 +93,8 @@ class OutputFormatter(object):
             href = link.get("href")
             if link_text and href:
                 href = urljoin(self.article.final_url, href)
-                link.text = " <a href='{href}' data-tn-article-link>{link_text}</a>".format(href=href,
-                                                                                            link_text=link_text)
+                text = " <a href='" + href + "' data-tn-article-link>" + link_text + "</a>"
+                link.text = text
         self.parser.stripTags(self.get_top_node(), 'a')
 
     def remove_negativescores_nodes(self):
