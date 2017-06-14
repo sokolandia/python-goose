@@ -37,7 +37,8 @@ AVAILABLE_PARSERS = {
 
 class Configuration(object):
 
-    def __init__(self):
+    def __init__(self, extract_links=False):
+        self.extract_links = extract_links
         # What's the minimum bytes for an image we'd accept is,
         # alot of times we want to filter out the author's little images
         # in the beginning of the article
