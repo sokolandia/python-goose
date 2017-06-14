@@ -22,7 +22,6 @@ limitations under the License.
 """
 from HTMLParser import HTMLParser
 from goose.text import innerTrim
-from urlparse import urljoin
 
 
 class OutputFormatter(object):
@@ -90,9 +89,9 @@ class OutputFormatter(object):
         for link in links:
             self.parser.stripTags(link, '*')
             link_text = self.parser.getText(link)
+            link.make_links_absolute(self.article.final_url)
             href = link.get("href")
             if link_text and href:
-                href = urljoin(self.article.final_url, href)
                 text = " <a href='" + href + "' data-tn-article-link>" + link_text + "</a>"
                 link.text = text
         self.parser.stripTags(self.get_top_node(), 'a')
