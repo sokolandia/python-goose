@@ -183,6 +183,9 @@ class Crawler(object):
             if self.config.enable_image_fetching:
                 self.image_extractor = self.get_image_extractor()
                 self.get_image()
+                if self.config.extract_images:
+                    self.get_article_images()
+
 
             # post cleanup
             self.article.top_node = self.extractor.post_cleanup()
@@ -205,6 +208,11 @@ class Crawler(object):
         doc = self.article.raw_doc
         top_node = self.article.top_node
         self.article.top_image = self.image_extractor.get_best_image(doc, top_node)
+
+    def get_article_images(self):
+        doc = self.article.raw_doc
+        top_node = self.article.top_node
+        self.article.article_images = self.image_extractor.get_article_images(doc, top_node)
 
     def get_html(self, crawl_candidate, parsing_candidate):
         # we got a raw_tml

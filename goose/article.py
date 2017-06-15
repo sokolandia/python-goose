@@ -25,6 +25,8 @@ limitations under the License.
 class Article(object):
 
     def __init__(self):
+        self.article_images = None
+
         # title of the article
         self.title = u""
 

@@ -72,6 +72,8 @@ class Goose(object):
     def initialize(self):
         # we don't need to go further if image extractor or
         # local_storage is not set
+        if True:
+            return
         if not self.config.local_storage_path or \
            not self.config.enable_image_fetching:
             return

@@ -73,6 +73,17 @@ class ImageExtractor(BaseExtractor):
             "|mediaplex.com|adsatt|view.atdmt"
         )
 
+    def get_article_images(self, doc, topNode):
+        good_images = self.get_image_candidates(topNode)
+        images = []
+        if good_images:
+            for good_image in good_images:
+                good_image.make_links_absolute(self.article.final_url)
+                src = good_image.get("src")
+                if src and src != self.article.top_image.src:
+                    images.append(src)
+        return images[:4]
+
     def get_best_image(self, doc, topNode):
         # image = self.check_known_elements()
         # if image:
@@ -84,6 +95,11 @@ class ImageExtractor(BaseExtractor):
 
         image = self.check_meta_tag()
         if image:
+            return image
+        article_images = self.get_article_images(doc, topNode)
+        if article_images:
+            image = Image()
+            image.src = article_images[0]
             return image
         return Image()
 
