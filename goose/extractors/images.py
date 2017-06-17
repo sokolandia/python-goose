@@ -82,7 +82,7 @@ class ImageExtractor(BaseExtractor):
                 src = good_image.get("src")
                 if src and src != self.article.top_image.src:
                     images.append(src)
-        return images[:4]
+        return images
 
     def get_best_image(self, doc, topNode):
         # image = self.check_known_elements()
