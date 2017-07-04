@@ -80,7 +80,7 @@ class ImageExtractor(BaseExtractor):
             for good_image in good_images:
                 good_image.make_links_absolute(self.article.final_url)
                 src = good_image.get("src")
-                if src and src != self.article.top_image.src:
+                if src:
                     images.append(src)
         return images
 
