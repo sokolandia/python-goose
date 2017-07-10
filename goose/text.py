@@ -96,7 +96,7 @@ class StopWords(object):
         if not language in self._cached_stop_words:
             path = os.path.join('text', 'stopwords-%s.txt' % language)
             try:
-                content = FileHelper.loadResourceFile(path)
+                content = FileHelper.loadResourceFile(path).encode('utf-8')
                 word_list = content.splitlines()
             except IOError:
                 word_list = []
